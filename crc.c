@@ -3,14 +3,14 @@
 #include <stdlib.h>
 #define MAX_SIZE 100
 void performXOR(char *dividend, char *divisor, int keyLength) {
-    for (int i = 0; i < keyLength; i++) dividend[i] = (dividend[i] == divisor[i]) ? '0' : '1';
+    for (int i = 0; i < keyLength; i++) dividend[i] = (dividend[i] == divisor[i]) ? '0' : '1'; // check if it's exclusive or (XOR)
 }
 void calculateCRC(char *data, int dataLength, char *key, int keyLength, char *quotient, char *remainder) {
-    char temp[30];
-    strcpy(temp, data);
-    for (int i = 0; i < dataLength; i++) {
-        quotient[i] = temp[0];
-        if (quotient[i] == '1') performXOR(temp, key, keyLength);
+    char temp[30]; 
+    strcpy(temp, data); // use strcpy because assigment operator doesn't work for strings
+    for (int i = 0; i < dataLength; i++) { 
+        quotient[i] = temp[0]; // store the first bit of temp in quotient because it will be used for the XOR operation
+        if (quotient[i] == '1') performXOR(temp, key, keyLength); // perform XOR operation if the first bit of temp is 1
         for (int j = 0; j < keyLength - 1; j++) temp[j] = temp[j + 1];
         temp[keyLength - 1] = data[i + keyLength];
     }

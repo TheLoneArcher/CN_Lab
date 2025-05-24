@@ -1,70 +1,56 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdbool.h>
-#define MAX_NODES 10
-typedef struct {
-    int cost[MAX_NODES], nextHop[MAX_NODES];
-    bool visited;
-} Node;
-void initializeNode(Node *node, int nodeCount, int source) {
-    for (int i = 0; i < nodeCount; i++) {
-        node->cost[i] = (i == source) ? 0 : INT_MAX;
-        node->nextHop[i] = (i == source) ? source : -1;
+#define MAX 10
+int graph[MAX][MAX], dist[MAX], prev[MAX], visited[MAX], n;
+void dijkstra(int src) {
+    for (int i = 0; i < n; i++) {
+        dist[i] = INT_MAX;
+        prev[i] = -1;
+        visited[i] = 0;
     }
-    node->visited = false;
-}
-int findMinCostNode(Node network[], int nodeCount) {
-    int minCost = INT_MAX, minIndex = -1;
-    for (int i = 0; i < nodeCount; i++) {
-        if (!network[i].visited && network[i].cost[i] < minCost) {
-            minCost = network[i].cost[i];
-            minIndex = i;
-        }
-    }
-    return minIndex;
-}
-void updateCosts(Node network[], int u, int nodeCount) {
-    for (int v = 0; v < nodeCount; v++) {
-        if (!network[v].visited && network[u].cost[v] != INT_MAX) {
-            int newCost = network[u].cost[u] + network[u].cost[v];
-            if (newCost < network[v].cost[v]) {
-                network[v].cost[v] = newCost;
-                network[v].nextHop[v] = u;
-            }
-        }
-    }
-}
-void linkStateRouting(Node network[], int nodeCount) {
-    for (int i = 0; i < nodeCount; i++) {
-        int u = findMinCostNode(network, nodeCount);
+    dist[src] = 0;
+    for (int count = 0; count < n; count++) {
+        int u = -1, min = INT_MAX;
+        for (int i = 0; i < n; i++)
+            if (!visited[i] && dist[i] < min)
+                min = dist[i], u = i;
         if (u == -1) break;
-        network[u].visited = true;
-        updateCosts(network, u, nodeCount);
+        visited[u] = 1;
+        for (int v = 0; v < n; v++)
+            if (graph[u][v] != INT_MAX && dist[u] + graph[u][v] < dist[v]) {
+                dist[v] = dist[u] + graph[u][v];
+                prev[v] = u;
+            }
     }
 }
-void displayTable(Node *node, int source, int nodeCount) {
-    printf("Routing Table for Node %d:\n", source);
-    printf("Dest\tCost\tNext Hop\n");
-    for (int dest = 0; dest < nodeCount; dest++) if (dest != source) printf("%d\t%d\t%d\n", dest, node->cost[dest], node->nextHop[dest]);
-    printf("\n");
+int getNextHop(int src, int dest) {
+    int hop = dest;
+    while (prev[hop] != -1 && prev[hop] != src)
+        hop = prev[hop];
+    return (prev[hop] == -1) ? -1 : hop;
+}
+void printTable(int src) {
+    dijkstra(src);
+    printf("\nRouting Table for Node %d:\nDest\tCost\tNext Hop\n", src);
+    for (int i = 0; i < n; i++) {
+        if (i != src)
+            printf("%d\t%d\t%d\n", i, dist[i], getNextHop(src, i));
+    }
 }
 int main() {
-    int nodeCount;
-    printf("Enter the number of nodes: ");
-    scanf("%d", &nodeCount);
-    Node network[MAX_NODES];
-    for (int i = 0; i < nodeCount; i++) initializeNode(&network[i], nodeCount, i);
-    for (int i = 0; i < nodeCount; i++) {
-        for (int j = 0; j < nodeCount; j++) {
-            if (i != j) {
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++) {
+            if (i == j) graph[i][j] = 0;
+            else {
                 printf("Cost from %d to %d (-1 for no link): ", i, j);
                 int cost;
                 scanf("%d", &cost);
-                network[i].cost[j] = (cost == -1) ? INT_MAX : cost;
+                graph[i][j] = (cost == -1) ? INT_MAX : cost;
             }
         }
-    }
-    linkStateRouting(network, nodeCount);
-    for (int i = 0; i < nodeCount; i++) displayTable(&network[i], i, nodeCount);
+    for (int i = 0; i < n; i++) printTable(i);
     return 0;
 }
